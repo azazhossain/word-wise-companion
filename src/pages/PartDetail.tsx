@@ -5,7 +5,7 @@ import { useMemorized } from "@/hooks/useProgress";
 import { useSaved } from "@/hooks/useSaved";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookmarkCheck, Bookmark, ChevronDown, ChevronUp, Play, Trophy, Star } from "lucide-react";
+import { ArrowLeft, BookmarkCheck, Bookmark, ChevronDown, ChevronUp, Play, Trophy, Star, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PartDetail = () => {
@@ -28,12 +28,17 @@ const PartDetail = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-2 p-4">
+      <div className="grid grid-cols-3 gap-2 p-4">
+        <Link to={`/flashcards?part=${partNum}`}>
+          <Button className="w-full gap-1.5 gradient-card text-primary-foreground border-0 shadow-card">
+            <Layers className="h-4 w-4" /> Cards
+          </Button>
+        </Link>
         <Link to={`/quiz/part/${partNum}?count=25`}>
-          <Button className="w-full gap-2" variant="secondary"><Play className="h-4 w-4" /> Quiz</Button>
+          <Button className="w-full gap-1.5" variant="secondary"><Play className="h-4 w-4" /> Quiz</Button>
         </Link>
         <Link to={`/quiz/part/${partNum}?count=50&mode=mock`}>
-          <Button className="w-full gap-2"><Trophy className="h-4 w-4" /> Mock Test</Button>
+          <Button className="w-full gap-1.5 gradient-sunset text-primary-foreground border-0 shadow-card"><Trophy className="h-4 w-4" /> Mock</Button>
         </Link>
       </div>
 
