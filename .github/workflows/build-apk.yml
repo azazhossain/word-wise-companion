@@ -1,0 +1,105 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build web bundle
+        run: npm run build
+
+      - name: Strip Capacitor server URL (force offline build)
+        run: |
+          node -e "
+          const fs = require('fs');
+          let f = fs.readFileSync('capacitor.config.ts', 'utf8');
+          f = f.replace(/\s*server:\s*\{[^}]*\},?/s, '');
+          fs.writeFileSync('capacitor.config.ts', f);
+          console.log('--- Patched capacitor.config.ts ---');
+          console.log(f);
+          "
+
+      - name: Add Android platform
+        run: npx cap add android || echo "Android platform already exists"
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Collect APK
+        run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/debug/app-debug.apk release/AdroitVocab-debug.apk
+          ls -la release/
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdroitVocab-APK
+          path: release/AdroitVocab-debug.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: AdroitVocab Build ${{ github.run_number }}
+          body: |
+            Auto-built APK from commit ${{ github.sha }}
+
+            **Download:** `AdroitVocab-debug.apk` — install directly on any Android phone (debug-signed).
+
+            **Install steps:**
+            1. Download the APK below to your Android device
+            2. Open the file → allow "Install from unknown sources" if prompted
+            3. Open the app — fully offline, all 1038 words bundled
+          files: release/AdroitVocab-debug.apk
+          token: ${{ secrets.GITHUB_TOKEN }}

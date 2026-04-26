@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AdroitVocab Design System — Glassmorphic Indigo. All colors HSL. */
+
+@layer base {
+  :root {
+    --background: 220 30% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 224 71% 38%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 217 91% 60%;
+
+    --secondary: 217 91% 96%;
+    --secondary-foreground: 224 71% 32%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 88%;
+    --input: 220 13% 91%;
+    --ring: 224 71% 32%;
+
+    --radius: 1rem;
+
+    /* Glass tokens */
+    --glass-bg: 0 0% 100% / 0.55;
+    --glass-border: 220 30% 80% / 0.45;
+    --glass-highlight: 220 30% 100% / 0.6;
+
+    /* Ambient backdrop blobs */
+    --blob-1: 217 91% 60%;
+    --blob-2: 262 83% 58%;
+    --blob-3: 38 92% 60%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(224 71% 32%) 0%, hsl(262 83% 58%) 60%, hsl(217 91% 60%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(262 83% 58%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(20 90% 55%) 100%);
+    --shadow-soft: 0 2px 12px -2px hsl(224 71% 32% / 0.08);
+    --shadow-elegant: 0 10px 30px -10px hsl(224 71% 32% / 0.25);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.35);
+    --shadow-glass: 0 8px 32px 0 hsl(222 47% 20% / 0.18);
+  }
+
+  .dark {
+    --background: 226 50% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 40% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 40% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 65%;
+    --primary-foreground: 222 47% 8%;
+    --primary-glow: 217 91% 75%;
+
+    --secondary: 222 30% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 30% 16%;
+    --muted-foreground: 215 25% 70%;
+
+    --accent: 38 92% 60%;
+    --accent-foreground: 222 47% 8%;
+
+    --success: 142 71% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 22%;
+    --input: 222 30% 20%;
+    --ring: 217 91% 65%;
+
+    /* Glass tokens (dark) */
+    --glass-bg: 224 40% 14% / 0.55;
+    --glass-border: 217 50% 70% / 0.18;
+    --glass-highlight: 217 91% 80% / 0.12;
+
+    --blob-1: 217 91% 55%;
+    --blob-2: 262 83% 60%;
+    --blob-3: 200 95% 50%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(224 71% 22%) 0%, hsl(262 60% 28%) 60%, hsl(217 71% 32%) 100%);
+    --shadow-glass: 0 8px 32px 0 hsl(222 47% 0% / 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
+    overscroll-behavior: none;
+  }
+
+  /* Ambient gradient blobs behind content for glass effect */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 10% 0%, hsl(var(--blob-1) / 0.35) 0%, transparent 60%),
+      radial-gradient(50% 40% at 100% 30%, hsl(var(--blob-2) / 0.30) 0%, transparent 60%),
+      radial-gradient(45% 35% at 50% 100%, hsl(var(--blob-3) / 0.22) 0%, transparent 65%);
+  }
+}
+
+@layer utilities {
+  .gradient-hero { background: var(--gradient-hero); }
+  .gradient-card { background: var(--gradient-card); }
+  .gradient-accent { background: var(--gradient-accent); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-elegant { box-shadow: var(--shadow-elegant); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-glass { box-shadow: var(--shadow-glass); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+  /* Glass surface — frosted card */
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+  .glass-strong {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+  .glass-subtle {
+    background: hsl(var(--glass-highlight));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+}
