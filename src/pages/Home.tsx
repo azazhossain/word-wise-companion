@@ -79,11 +79,13 @@ const Home = () => {
           <p className="mt-1 text-lg font-bold">{current}</p>
           <p className="text-[10px] uppercase text-muted-foreground">Streak</p>
         </Card>
-        <Card className="glass flex flex-col items-center justify-center border-0 p-3">
-          <BookmarkCheck className="h-5 w-5 text-success" />
-          <p className="mt-1 text-lg font-bold">{memorizedCount}</p>
-          <p className="text-[10px] uppercase text-muted-foreground">Memo</p>
-        </Card>
+        <Link to="/memorized">
+          <Card className="glass flex flex-col items-center justify-center border-0 p-3 transition active:scale-95">
+            <BookmarkCheck className="h-5 w-5 text-success" />
+            <p className="mt-1 text-lg font-bold">{memorizedCount}</p>
+            <p className="text-[10px] uppercase text-muted-foreground">Memo</p>
+          </Card>
+        </Link>
         <Link to="/saved">
           <Card className="glass flex flex-col items-center justify-center border-0 p-3 transition active:scale-95">
             <Bookmark className="h-5 w-5 text-primary" />
@@ -102,12 +104,12 @@ const Home = () => {
       <div className="px-5 pt-6">
         <h3 className="mb-3 text-base font-semibold">দ্রুত শুরু</h3>
         <div className="grid grid-cols-2 gap-3">
-          <Link to="/quiz/random?count=10">
+          <Link to="/quiz/random?count=25">
             <Card className="gradient-card group flex h-28 flex-col justify-between p-4 text-primary-foreground shadow-elegant transition-transform active:scale-95">
               <BookOpen className="h-6 w-6" />
               <div>
                 <p className="text-base font-bold">র‍্যান্ডম কুইজ</p>
-                <p className="text-xs opacity-90">১০টি প্রশ্ন</p>
+                <p className="text-xs opacity-90">২৫টি প্রশ্ন</p>
               </div>
             </Card>
           </Link>
@@ -129,12 +131,12 @@ const Home = () => {
               </div>
             </Card>
           </Link>
-          <Link to="/quiz/mock?count=50">
+          <Link to="/quiz/mock?count=100">
             <Card className="flex h-28 flex-col justify-between border bg-card p-4 shadow-soft transition-transform active:scale-95">
               <Trophy className="h-6 w-6 text-accent" />
               <div>
                 <p className="text-base font-bold">মক টেস্ট</p>
-                <p className="text-xs text-muted-foreground">৫০ প্রশ্ন</p>
+                <p className="text-xs text-muted-foreground">১০০ প্রশ্ন</p>
               </div>
             </Card>
           </Link>

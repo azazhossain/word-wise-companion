@@ -33,12 +33,12 @@ const Parts = () => {
                   </div>
                 </Link>
                 <div className="flex gap-2">
-                  <Link to={`/quiz/part/${p}?count=10`}>
+                  <Link to={`/quiz/part/${p}?count=25`}>
                     <Button size="sm" variant="secondary" className="gap-1">
                       <Play className="h-3.5 w-3.5" /> Quiz
                     </Button>
                   </Link>
-                  <Link to={`/quiz/part/${p}?count=25&mode=mock`}>
+                  <Link to={`/quiz/part/${p}?count=50&mode=mock`}>
                     <Button size="sm" className="gap-1">
                       <Trophy className="h-3.5 w-3.5" /> Mock
                     </Button>

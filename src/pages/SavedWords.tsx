@@ -56,7 +56,7 @@ const SavedWords = () => {
         <>
           {count > 0 && (
             <div className="px-4 pt-4">
-              <Link to="/quiz/saved?count=10">
+              <Link to="/quiz/saved?count=25">
                 <Button className="w-full gap-2 gradient-card text-primary-foreground shadow-elegant">
                   <Play className="h-4 w-4" /> Saved শব্দ দিয়ে কুইজ
                 </Button>

@@ -11,6 +11,7 @@ import Quiz from "./pages/Quiz";
 import Flashcards from "./pages/Flashcards";
 import Dictionary from "./pages/Dictionary";
 import SavedWords from "./pages/SavedWords";
+import Memorized from "./pages/Memorized";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/parts/:part" element={<AppShell><PartDetail /></AppShell>} />
           <Route path="/dictionary" element={<AppShell><Dictionary /></AppShell>} />
           <Route path="/saved" element={<AppShell><SavedWords /></AppShell>} />
+          <Route path="/memorized" element={<AppShell><Memorized /></AppShell>} />
           <Route path="/flashcards" element={<Flashcards />} />
           <Route path="/quiz/:mode" element={<Quiz />} />
           <Route path="/quiz/:mode/:part" element={<Quiz />} />

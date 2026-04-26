@@ -29,10 +29,10 @@ const PartDetail = () => {
       </header>
 
       <div className="grid grid-cols-2 gap-2 p-4">
-        <Link to={`/quiz/part/${partNum}?count=10`}>
+        <Link to={`/quiz/part/${partNum}?count=25`}>
           <Button className="w-full gap-2" variant="secondary"><Play className="h-4 w-4" /> Quiz</Button>
         </Link>
-        <Link to={`/quiz/part/${partNum}?count=25&mode=mock`}>
+        <Link to={`/quiz/part/${partNum}?count=50&mode=mock`}>
           <Button className="w-full gap-2"><Trophy className="h-4 w-4" /> Mock Test</Button>
         </Link>
       </div>
