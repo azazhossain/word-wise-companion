@@ -37,7 +37,6 @@ function buildSynonymQ(word: Word, pool: Word[]): MCQ | null {
   const syns = splitList(word.synonyms).map(cleanWord).filter(Boolean);
   if (syns.length === 0) return null;
   const correct = pick(syns);
-  // distractors: synonyms from other words that are NOT also synonyms of this word
   const synSet = new Set(syns.map((s) => s.toLowerCase()));
   const candidates = pool
     .filter((w) => w.id !== word.id)
@@ -116,7 +115,14 @@ function buildWordToMeaningQ(word: Word, pool: Word[]): MCQ | null {
   };
 }
 
-const builders = [buildSynonymQ, buildAntonymQ, buildMeaningToWordQ, buildWordToMeaningQ];
+type Builder = (word: Word, pool: Word[]) => MCQ | null;
+
+const BUILDERS: { type: QuestionType; build: Builder }[] = [
+  { type: "FIND_SYNONYM", build: buildSynonymQ },
+  { type: "FIND_ANTONYM", build: buildAntonymQ },
+  { type: "MEANING_TO_WORD", build: buildMeaningToWordQ },
+  { type: "WORD_TO_MEANING", build: buildWordToMeaningQ },
+];
 
 export interface QuizConfig {
   pool: Word[];
@@ -128,15 +134,8 @@ export function generateQuestions({ pool, count, types }: QuizConfig): MCQ[] {
   const allowed = new Set<QuestionType>(
     types ?? ["FIND_SYNONYM", "FIND_ANTONYM", "MEANING_TO_WORD", "WORD_TO_MEANING"]
   );
-  const allowedBuilders = builders.filter((b) => {
-    // map builder -> type by name match
-    const t = b.name;
-    if (t.includes("Synonym")) return allowed.has("FIND_SYNONYM");
-    if (t.includes("Antonym")) return allowed.has("FIND_ANTONYM");
-    if (t.includes("MeaningToWord")) return allowed.has("MEANING_TO_WORD");
-    if (t.includes("WordToMeaning")) return allowed.has("WORD_TO_MEANING");
-    return false;
-  });
+  const allowedBuilders = BUILDERS.filter((b) => allowed.has(b.type));
+  if (allowedBuilders.length === 0) return [];
 
   const shuffledPool = shuffle(pool);
   const distractorPool = pool.length >= 20 ? pool : ALL_WORDS;
@@ -149,7 +148,7 @@ export function generateQuestions({ pool, count, types }: QuizConfig): MCQ[] {
     attempts++;
     const w = shuffledPool[i % shuffledPool.length];
     i++;
-    const builder = pick(allowedBuilders);
+    const builder = pick(allowedBuilders).build;
     const q = builder(w, distractorPool);
     if (q) questions.push(q);
   }
