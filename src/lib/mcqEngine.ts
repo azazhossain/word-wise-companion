@@ -132,7 +132,7 @@ export interface QuizConfig {
 
 export function generateQuestions({ pool, count, types }: QuizConfig): MCQ[] {
   const allowed = new Set<QuestionType>(
-    types ?? ["FIND_SYNONYM", "FIND_ANTONYM", "MEANING_TO_WORD", "WORD_TO_MEANING"]
+    types ?? ["FIND_SYNONYM", "FIND_ANTONYM"]
   );
   const allowedBuilders = BUILDERS.filter((b) => allowed.has(b.type));
   if (allowedBuilders.length === 0) return [];

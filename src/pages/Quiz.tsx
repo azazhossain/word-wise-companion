@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ALL_WORDS, wordsByPart } from "@/data/words";
+import { ALL_WORDS, splitList, wordsByPart } from "@/data/words";
 import { generateQuestions, type MCQ } from "@/lib/mcqEngine";
 import { useStreak } from "@/hooks/useProgress";
 import { useSaved } from "@/hooks/useSaved";
@@ -148,10 +148,51 @@ const Quiz = () => {
       </div>
 
       {revealed && !isMock && (
-        <div className="border-t border-border bg-card p-4 animate-slide-up">
-          <p className="text-xs text-muted-foreground">শব্দ: <span className="font-semibold text-foreground">{q.word.headword}</span></p>
-          <p className="mt-1 text-sm">{q.word.meaning}</p>
-          <Button onClick={() => next()} className="mt-3 w-full gap-1">
+        <div className="max-h-[55vh] overflow-y-auto border-t border-border bg-card p-4 animate-slide-up">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">শব্দ</p>
+              <p className="text-lg font-bold">{q.word.headword}</p>
+            </div>
+            <span
+              className={cn(
+                "rounded-lg px-2 py-1 text-[11px] font-bold",
+                selected === q.correctIndex
+                  ? "bg-success/15 text-success"
+                  : "bg-destructive/15 text-destructive"
+              )}
+            >
+              {selected === q.correctIndex ? "সঠিক" : "ভুল"}
+            </span>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3">
+            <p className="text-[11px] uppercase tracking-wide text-success">সঠিক উত্তর</p>
+            <p className="mt-0.5 text-sm font-semibold text-success">
+              {q.options[q.correctIndex]}
+            </p>
+          </div>
+
+          <div className="mt-3">
+            <p className="text-[11px] uppercase tracking-wide text-primary">অর্থ</p>
+            <p className="mt-0.5 text-sm">{q.word.meaning}</p>
+          </div>
+
+          {q.word.synonyms && (
+            <div className="mt-2">
+              <p className="text-[11px] uppercase tracking-wide text-success">Synonyms</p>
+              <p className="mt-0.5 text-sm">{splitList(q.word.synonyms).join(", ")}</p>
+            </div>
+          )}
+
+          {q.word.antonyms && (
+            <div className="mt-2">
+              <p className="text-[11px] uppercase tracking-wide text-destructive">Antonyms</p>
+              <p className="mt-0.5 text-sm">{splitList(q.word.antonyms).join(", ")}</p>
+            </div>
+          )}
+
+          <Button onClick={() => next()} className="mt-4 w-full gap-1">
             পরবর্তী <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
