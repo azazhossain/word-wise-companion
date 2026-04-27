@@ -14,8 +14,6 @@ import {
   BookmarkCheck,
   Bookmark,
   Star,
-  X as XIcon,
-  Check as CheckIcon,
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,9 +31,11 @@ const shuffleArr = <T,>(a: T[]) => {
 const sortById = <T extends { id: number }>(a: T[]) =>
   [...a].sort((x, y) => x.id - y.id);
 
-const SWIPE_THRESHOLD = 90;
-const VELOCITY_THRESHOLD = 0.4;
-const TAP_MOVE_TOLERANCE = 6;
+// Horizontal swipe thresholds
+const SWIPE_THRESHOLD = 60;        // px of horizontal movement to count as a swipe
+const VELOCITY_THRESHOLD = 0.35;   // px/ms (fast flicks count even if shorter)
+const TAP_MOVE_TOLERANCE = 8;      // px — anything below counts as a tap (flip)
+const VERTICAL_GUARD = 1.2;        // |dx| must beat |dy| * this to count as horizontal
 
 const Flashcards = () => {
   const [search, setSearch] = useSearchParams();
@@ -51,8 +51,6 @@ const Flashcards = () => {
   const [deck, setDeck] = useState<Word[]>(() => sortById(sourceWords));
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [drag, setDrag] = useState({ x: 0, y: 0 });
-  const [exit, setExit] = useState<{ dir: 1 | -1 } | null>(null);
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const draggingRef = useRef(false);
   const { isMemorized, toggle: toggleMemo } = useMemorized();
@@ -63,36 +61,23 @@ const Flashcards = () => {
     setDeck(shuffled ? shuffleArr(sourceWords) : sortById(sourceWords));
     setIdx(0);
     setFlipped(false);
-    setDrag({ x: 0, y: 0 });
-    setExit(null);
   }, [sourceWords, shuffled]);
 
   const w = deck[idx];
-  const nextW = deck[idx + 1];
   const memo = w ? isMemorized(w.id) : false;
   const saved = w ? isSaved(w.id) : false;
 
+  // Always show the front face when moving to a new card
   useEffect(() => {
     setFlipped(false);
-    setDrag({ x: 0, y: 0 });
-    setExit(null);
   }, [idx]);
 
-  const advance = (dir: 1 | -1) => {
-    if (idx >= deck.length - 1) {
-      setDrag({ x: 0, y: 0 });
-      return;
-    }
-    setExit({ dir });
-    window.setTimeout(() => setIdx((i) => i + 1), 220);
-  };
-
   const goNext = () => {
-    if (exit || idx >= deck.length - 1) return;
+    if (idx >= deck.length - 1) return;
     setIdx((i) => i + 1);
   };
   const goPrev = () => {
-    if (exit || idx === 0) return;
+    if (idx === 0) return;
     setIdx((i) => Math.max(i - 1, 0));
   };
   const reshuffle = () => {
@@ -106,27 +91,31 @@ const Flashcards = () => {
     else setSearch({ part: String(p) });
   };
 
+  // --- Simple horizontal swipe (no rotation, no drag visual) ----------------
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (exit) return;
     startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
     draggingRef.current = false;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!startRef.current || exit) return;
+    if (!startRef.current) return;
     const dx = e.clientX - startRef.current.x;
     const dy = e.clientY - startRef.current.y;
     if (!draggingRef.current && Math.hypot(dx, dy) > TAP_MOVE_TOLERANCE) {
       draggingRef.current = true;
     }
-    if (draggingRef.current) setDrag({ x: dx, y: dy });
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!startRef.current) return;
     const start = startRef.current;
     const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
     const dt = Math.max(Date.now() - start.t, 1);
     const velocity = Math.abs(dx) / dt;
     const wasDragging = draggingRef.current;
@@ -138,35 +127,34 @@ const Flashcards = () => {
       /* ignore */
     }
 
+    // Tap → flip card
     if (!wasDragging) {
       setFlipped((f) => !f);
       return;
     }
 
-    if (Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
-      const dir: 1 | -1 = dx > 0 ? 1 : -1;
-      if (dir === 1 && w && !isMemorized(w.id)) toggleMemo(w.id);
-      advance(dir);
+    // Must be a mostly-horizontal motion
+    const horizontal = Math.abs(dx) > Math.abs(dy) * VERTICAL_GUARD;
+    const passed =
+      horizontal &&
+      (Math.abs(dx) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD);
+    if (!passed) return;
+
+    if (dx > 0) {
+      // right swipe → next word
+      if (idx < deck.length - 1) goNext();
     } else {
-      setDrag({ x: 0, y: 0 });
+      // left swipe → previous word
+      if (idx > 0) goPrev();
     }
   };
 
   const onPointerCancel = () => {
     startRef.current = null;
     draggingRef.current = false;
-    setDrag({ x: 0, y: 0 });
   };
+  // -------------------------------------------------------------------------
 
-  const cardTransform = useMemo(() => {
-    if (exit) {
-      return `translate3d(${exit.dir * (typeof window !== "undefined" ? window.innerWidth : 400) * 1.2}px, 0, 0) rotate(${exit.dir * 25}deg)`;
-    }
-    const rot = drag.x * 0.06;
-    return `translate3d(${drag.x}px, ${drag.y * 0.15}px, 0) rotate(${rot}deg)`;
-  }, [drag, exit]);
-
-  const swipeProgress = Math.min(Math.abs(drag.x) / SWIPE_THRESHOLD, 1);
   const progressPct = deck.length ? Math.round(((idx + 1) / deck.length) * 100) : 0;
 
   return (
@@ -251,54 +239,9 @@ const Flashcards = () => {
       ) : (
         <>
           <div className="relative flex flex-1 items-center justify-center px-6 py-4">
-            {/* next-card stack underneath */}
-            {nextW && (
-              <div
-                className="pointer-events-none absolute h-80 w-full max-w-sm opacity-60"
-                style={{ transform: "scale(0.95) translateY(10px)" }}
-              >
-                <Card className="gradient-hero flex h-full w-full flex-col items-center justify-center p-6 text-primary-foreground shadow-elegant">
-                  <p className="text-xs uppercase tracking-widest opacity-70">
-                    পার্ট {nextW.part}
-                  </p>
-                  <h2 className="mt-3 text-center text-3xl font-bold">
-                    {nextW.headword}
-                  </h2>
-                </Card>
-              </div>
-            )}
-
-            {/* swipe direction overlays */}
-            {drag.x !== 0 && !exit && (
-              <>
-                <div
-                  className="pointer-events-none absolute left-8 top-1/2 z-20 -translate-y-1/2 rounded-2xl border-4 border-success bg-success/20 px-5 py-2 text-xl font-bold text-success rotate-[-12deg]"
-                  style={{ opacity: drag.x > 0 ? swipeProgress : 0 }}
-                >
-                  মুখস্ত
-                </div>
-                <div
-                  className="pointer-events-none absolute right-8 top-1/2 z-20 -translate-y-1/2 rounded-2xl border-4 border-destructive bg-destructive/20 px-5 py-2 text-xl font-bold text-destructive rotate-[12deg]"
-                  style={{ opacity: drag.x < 0 ? swipeProgress : 0 }}
-                >
-                  স্কিপ
-                </div>
-              </>
-            )}
-
-            {/* draggable card */}
+            {/* card (tap to flip, swipe left/right to navigate) */}
             <div
-              className="relative z-10 h-80 w-full max-w-sm touch-none select-none"
-              style={{
-                transform: cardTransform,
-                opacity: exit ? 0 : 1,
-                transition: exit
-                  ? "transform 220ms ease-out, opacity 220ms ease-out"
-                  : startRef.current
-                  ? "none"
-                  : "transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)",
-                willChange: "transform",
-              }}
+              className="relative z-10 h-80 w-full max-w-sm touch-pan-y select-none"
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
@@ -319,8 +262,8 @@ const Flashcards = () => {
                   <h2 className="mt-3 text-center text-3xl font-bold">
                     {w.headword}
                   </h2>
-                  <p className="absolute bottom-4 text-xs opacity-70">
-                    ট্যাপ: উল্টান · swipe ➡ মুখস্ত
+                  <p className="absolute bottom-4 px-4 text-center text-[11px] opacity-70">
+                    ট্যাপ: উল্টান · ⬅ পূর্ববর্তী · পরবর্তী ➡
                   </p>
                 </Card>
                 {/* Back */}
@@ -395,7 +338,7 @@ const Flashcards = () => {
               size="lg"
               variant="outline"
               onClick={goPrev}
-              disabled={idx === 0 || !!exit}
+              disabled={idx === 0}
               className="h-14 gap-2 text-base font-semibold"
             >
               <ChevronLeft className="h-6 w-6" />
@@ -404,7 +347,7 @@ const Flashcards = () => {
             <Button
               size="lg"
               onClick={goNext}
-              disabled={idx >= deck.length - 1 || !!exit}
+              disabled={idx >= deck.length - 1}
               className="h-14 gap-2 gradient-card text-base font-semibold text-primary-foreground shadow-card"
             >
               পরবর্তী
