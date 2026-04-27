@@ -1,28 +1,51 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ALL_WORDS, PARTS, totalWords } from "@/data/words";
+import { ALL_WORDS, PARTS, splitList, totalWords } from "@/data/words";
 import { useMemorized, useStreak } from "@/hooks/useProgress";
 import { useSaved } from "@/hooks/useSaved";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Trophy, BookmarkCheck, BookOpen, Layers, Search, Bell, Sparkles, Bookmark } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Flame,
+  Trophy,
+  BookmarkCheck,
+  BookOpen,
+  Layers,
+  Search,
+  Bell,
+  Sparkles,
+  Bookmark,
+  Star,
+} from "lucide-react";
 import { requestNotificationPermission, scheduleDailyReminder } from "@/lib/notifications";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const Home = () => {
   const { count: memorizedCount } = useMemorized();
   const { count: savedCount } = useSaved();
   const { current, best, totalCorrect, totalQuizzes } = useStreak();
+  const { isSaved, toggle: toggleSaved } = useSaved();
   const [wordOfMoment, setWordOfMoment] = useState(() => ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]);
+  const [wotmOpen, setWotmOpen] = useState(false);
 
   useEffect(() => {
+    if (wotmOpen) return; // pause rotation while the user is reading
     const t = setInterval(() => {
       setWordOfMoment(ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]);
     }, 12000);
     return () => clearInterval(t);
-  }, []);
+  }, [wotmOpen]);
+
+  const wotmSaved = isSaved(wordOfMoment.id);
 
   const accuracy = useMemo(
     () => (totalQuizzes > 0 ? Math.round((totalCorrect / (totalQuizzes * 10)) * 100) : 0),
@@ -56,21 +79,126 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Word of the moment */}
-        <Card className="mt-5 overflow-hidden border border-white/20 bg-white/10 p-4 text-primary-foreground shadow-glow backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide opacity-80">
-            <Sparkles className="h-3.5 w-3.5" />
-            Word of the Moment
-          </div>
-          <h2 className="mt-2 text-2xl font-bold">{wordOfMoment.headword}</h2>
-          <p className="mt-1 text-sm opacity-95">{wordOfMoment.meaning}</p>
-          {wordOfMoment.synonyms && (
-            <p className="mt-2 text-xs opacity-80">
-              <span className="font-semibold">Syn:</span> {wordOfMoment.synonyms}
-            </p>
-          )}
-        </Card>
+        {/* Word of the moment — tap to see full details */}
+        <button
+          type="button"
+          onClick={() => setWotmOpen(true)}
+          aria-label={`View details for ${wordOfMoment.headword}`}
+          className="mt-5 block w-full text-left"
+        >
+          <Card className="overflow-hidden border border-white/20 bg-white/10 p-4 text-primary-foreground shadow-glow backdrop-blur-xl transition active:scale-[0.98]">
+            <div className="flex items-center justify-between text-xs uppercase tracking-wide opacity-80">
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5" />
+                Word of the Moment
+              </span>
+              <span className="text-[10px] opacity-80">tap →</span>
+            </div>
+            <h2 className="mt-2 text-2xl font-bold">{wordOfMoment.headword}</h2>
+            <p className="mt-1 text-sm opacity-95 line-clamp-2">{wordOfMoment.meaning}</p>
+            {wordOfMoment.synonyms && (
+              <p className="mt-2 text-xs opacity-80 line-clamp-1">
+                <span className="font-semibold">Syn:</span> {wordOfMoment.synonyms}
+              </p>
+            )}
+          </Card>
+        </button>
       </div>
+
+      {/* Word of the moment detail dialog */}
+      <Dialog open={wotmOpen} onOpenChange={setWotmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Word of the Moment
+              <Badge variant="secondary" className="ml-auto text-[10px]">
+                পার্ট {wordOfMoment.part}
+              </Badge>
+            </div>
+            <DialogTitle className="mt-1 text-3xl font-bold text-gradient">
+              {wordOfMoment.headword}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-primary">অর্থ</p>
+              <p className="mt-1 text-base font-medium leading-relaxed">
+                {wordOfMoment.meaning}
+              </p>
+            </div>
+
+            {wordOfMoment.synonyms && (
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-success">
+                  Synonyms
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {splitList(wordOfMoment.synonyms).map((s, i) => (
+                    <Badge
+                      key={`syn-${i}`}
+                      variant="secondary"
+                      className="bg-success/15 text-success hover:bg-success/20"
+                    >
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {wordOfMoment.antonyms && (
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-destructive">
+                  Antonyms
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {splitList(wordOfMoment.antonyms).map((a, i) => (
+                    <Badge
+                      key={`ant-${i}`}
+                      variant="secondary"
+                      className="bg-destructive/15 text-destructive hover:bg-destructive/20"
+                    >
+                      {a}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Button
+                variant={wotmSaved ? "default" : "outline"}
+                onClick={() => {
+                  toggleSaved(wordOfMoment.id);
+                  toast(wotmSaved ? "Save থেকে সরানো হলো" : "🔖 Saved!");
+                }}
+                className={cn(
+                  "gap-1.5",
+                  wotmSaved &&
+                    "gradient-sunset text-primary-foreground border-transparent"
+                )}
+              >
+                <Star className={cn("h-4 w-4", wotmSaved && "fill-current")} />
+                {wotmSaved ? "Saved" : "Save"}
+              </Button>
+              <Button
+                onClick={() => {
+                  setWotmOpen(false);
+                  setWordOfMoment(
+                    ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]
+                  );
+                }}
+                className="gap-1.5 gradient-card text-primary-foreground border-0"
+              >
+                <Sparkles className="h-4 w-4" />
+                আরেকটি
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-2 px-5 -mt-5">
