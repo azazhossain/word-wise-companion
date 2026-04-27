@@ -9,7 +9,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  RefreshCw,
+  Shuffle,
+  ListOrdered,
   BookmarkCheck,
   Bookmark,
   Star,
@@ -29,6 +30,9 @@ const shuffleArr = <T,>(a: T[]) => {
   return r;
 };
 
+const sortById = <T extends { id: number }>(a: T[]) =>
+  [...a].sort((x, y) => x.id - y.id);
+
 const SWIPE_THRESHOLD = 90;
 const VELOCITY_THRESHOLD = 0.4;
 const TAP_MOVE_TOLERANCE = 6;
@@ -43,7 +47,8 @@ const Flashcards = () => {
     [selectedPart]
   );
 
-  const [deck, setDeck] = useState<Word[]>(() => shuffleArr(sourceWords));
+  const [shuffled, setShuffled] = useState(false);
+  const [deck, setDeck] = useState<Word[]>(() => sortById(sourceWords));
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [drag, setDrag] = useState({ x: 0, y: 0 });
@@ -53,14 +58,14 @@ const Flashcards = () => {
   const { isMemorized, toggle: toggleMemo } = useMemorized();
   const { isSaved, toggle: toggleSaved } = useSaved();
 
-  // Reset deck whenever the part filter changes
+  // Reset deck whenever the part filter or shuffle mode changes
   useEffect(() => {
-    setDeck(shuffleArr(sourceWords));
+    setDeck(shuffled ? shuffleArr(sourceWords) : sortById(sourceWords));
     setIdx(0);
     setFlipped(false);
     setDrag({ x: 0, y: 0 });
     setExit(null);
-  }, [sourceWords]);
+  }, [sourceWords, shuffled]);
 
   const w = deck[idx];
   const nextW = deck[idx + 1];
@@ -91,9 +96,10 @@ const Flashcards = () => {
     setIdx((i) => Math.max(i - 1, 0));
   };
   const reshuffle = () => {
-    setDeck(shuffleArr(sourceWords));
+    setDeck(shuffled ? shuffleArr(sourceWords) : sortById(sourceWords));
     setIdx(0);
   };
+  const toggleShuffle = () => setShuffled((s) => !s);
 
   const setPart = (p: number | null) => {
     if (p === null) setSearch({});
@@ -176,11 +182,22 @@ const Flashcards = () => {
             <h1 className="text-lg font-bold text-gradient">ফ্ল্যাশকার্ড</h1>
             <p className="text-xs text-muted-foreground">
               {selectedPart ? `পার্ট ${selectedPart} · ` : "সব পার্ট · "}
-              {deck.length === 0 ? 0 : idx + 1} / {deck.length}
+              {deck.length === 0 ? 0 : idx + 1} / {deck.length} ·{" "}
+              {shuffled ? "র‍্যান্ডম" : "ক্রমানুসারে"}
             </p>
           </div>
-          <Button size="icon" variant="ghost" onClick={reshuffle} aria-label="Shuffle">
-            <RefreshCw className="h-4 w-4" />
+          <Button
+            size="icon"
+            variant={shuffled ? "default" : "outline"}
+            onClick={toggleShuffle}
+            aria-label={shuffled ? "Switch to serial order" : "Shuffle"}
+            className={cn(shuffled && "gradient-card text-primary-foreground border-0")}
+          >
+            {shuffled ? (
+              <Shuffle className="h-4 w-4" />
+            ) : (
+              <ListOrdered className="h-4 w-4" />
+            )}
           </Button>
         </div>
 

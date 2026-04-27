@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { storage } from "@/lib/storage";
+import { syncPaletteToTheme } from "./usePalette";
 
 const KEY_THEME = "av:theme";
 type Theme = "light" | "dark";
@@ -8,6 +9,8 @@ function applyTheme(t: Theme) {
   const root = document.documentElement;
   if (t === "dark") root.classList.add("dark");
   else root.classList.remove("dark");
+  // Re-apply palette so dark-specific gradient overrides take effect immediately.
+  syncPaletteToTheme();
 }
 
 export function useTheme() {
