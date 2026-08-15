@@ -22,6 +22,32 @@ export const totalWords = ALL_WORDS.length;
 
 export const splitList = (s: string): string[] =>
   s
-    .split(/[;,]/)
+    .split(/[;,|]/)
     .map((x) => x.trim())
     .filter(Boolean);
+
+export const normalizeTerm = (value: string): string =>
+  value
+    .replace(/\s*\(.*?\)\s*/g, " ")
+    .replace(/^[A-E]\.\s*/i, "")
+    .replace(/[“”"'`.,!?;:()[\]{}]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+export const findWordByTerm = (
+  term: string,
+  pool: Word[] = ALL_WORDS,
+): Word | undefined => {
+  const normalized = normalizeTerm(term);
+  if (!normalized) return undefined;
+
+  return pool.find((word) => {
+    const terms = [
+      word.headword,
+      ...splitList(word.synonyms),
+      ...splitList(word.antonyms),
+    ];
+    return terms.some((candidate) => normalizeTerm(candidate) === normalized);
+  });
+};

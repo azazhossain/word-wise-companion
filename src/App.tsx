@@ -12,6 +12,9 @@ import Flashcards from "./pages/Flashcards";
 import Dictionary from "./pages/Dictionary";
 import SavedWords from "./pages/SavedWords";
 import Memorized from "./pages/Memorized";
+import PreviousYears from "./pages/PreviousYears";
+import PreviousYearPart from "./pages/PreviousYearPart";
+import PreviousYearQuiz from "./pages/PreviousYearQuiz";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,10 @@ const App = () => (
           <Route path="/dictionary" element={<AppShell><Dictionary /></AppShell>} />
           <Route path="/saved" element={<AppShell><SavedWords /></AppShell>} />
           <Route path="/memorized" element={<AppShell><Memorized /></AppShell>} />
+          <Route path="/previous-years" element={<AppShell><PreviousYears /></AppShell>} />
+          <Route path="/previous-years/:part" element={<AppShell><PreviousYearPart /></AppShell>} />
+          <Route path="/previous-years/quiz" element={<PreviousYearQuiz />} />
+          <Route path="/previous-years/quiz/:part" element={<PreviousYearQuiz />} />
           <Route path="/flashcards" element={<Flashcards />} />
           <Route path="/quiz/:mode" element={<Quiz />} />
           <Route path="/quiz/:mode/:part" element={<Quiz />} />

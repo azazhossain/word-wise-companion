@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Layers, Search, Bookmark, BookOpen } from "lucide-react";
+import { Home, Layers, Search, Bookmark, BookOpen, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -8,6 +8,7 @@ const tabs = [
   { to: "/dictionary", label: "ডিকশনারি", icon: Search },
   { to: "/saved", label: "সেভড", icon: Bookmark },
   { to: "/flashcards", label: "ফ্ল্যাশ", icon: BookOpen },
+  { to: "/previous-years", label: "বিগত প্রশ্ন", icon: History },
 ];
 
 export const BottomNav = () => {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ALL_WORDS, splitList, wordsByPart } from "@/data/words";
+import { ALL_WORDS, findWordByTerm, splitList, wordsByPart } from "@/data/words";
 import { generateQuestions, type MCQ } from "@/lib/mcqEngine";
 import { useStreak } from "@/hooks/useProgress";
 import { useSaved } from "@/hooks/useSaved";
@@ -9,6 +9,26 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Check, X, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const OptionExplanation = ({ option }: { option: string }) => {
+  const word = findWordByTerm(option);
+  return (
+    <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+      <p className="text-sm font-semibold">{option}</p>
+      {word ? (
+        <div className="mt-1 space-y-1 text-xs text-muted-foreground">
+          <p><span className="font-semibold text-foreground">অর্থ:</span> {word.meaning}</p>
+          {word.synonyms && <p><span className="font-semibold text-success">Synonyms:</span> {splitList(word.synonyms).join(", ")}</p>}
+          {word.antonyms && <p><span className="font-semibold text-destructive">Antonyms:</span> {splitList(word.antonyms).join(", ")}</p>}
+        </div>
+      ) : (
+        <p className="mt-1 text-xs text-muted-foreground">
+          এই অপশনের বিস্তারিত শব্দতালিকায় পাওয়া যায়নি।
+        </p>
+      )}
+    </div>
+  );
+};
 
 const Quiz = () => {
   const { mode, part } = useParams();
@@ -191,6 +211,17 @@ const Quiz = () => {
               <p className="mt-0.5 text-sm">{splitList(q.word.antonyms).join(", ")}</p>
             </div>
           )}
+
+          <div className="mt-5 border-t border-border/70 pt-4">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">ভুল অপশনের বিস্তারিত</p>
+            <div className="mt-2 space-y-2">
+              {q.options.map((option, optionIndex) =>
+                optionIndex === q.correctIndex ? null : (
+                  <OptionExplanation key={`${option}-${optionIndex}`} option={option} />
+                ),
+              )}
+            </div>
+          </div>
 
           <Button onClick={() => next()} className="mt-4 w-full gap-1">
             পরবর্তী <ChevronRight className="h-4 w-4" />
