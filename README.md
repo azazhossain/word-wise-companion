@@ -20,32 +20,8 @@ React + Vite + TypeScript + Tailwind + Capacitor (Android native APK)
 
 ---
 
-## 🚀 Build APK — শুধু GitHub দিয়ে (Android Studio লাগবে না!)
-
-এই project-এ **GitHub Actions workflow** include করা আছে। আপনি কিছুই install করবেন না — GitHub-এর cloud server-এ APK build হবে এবং আপনি direct download করবেন।
 
 ### এটা কীভাবে কাজ করে
-
-প্রতিবার আপনি Lovable-এ change করেন → GitHub-এ auto push হয় → GitHub Actions চালু হয় → ৫-৮ মিনিটে APK ready।
-
-### একবার শুরু করার জন্য:
-
-**ধাপ ১:** GitHub repo-তে যান → **Actions** tab খুলুন
-
-**ধাপ ২:** "Build Android APK" workflow দেখবেন। যদি disabled থাকে, **Enable workflow** ক্লিক করুন।
-
-**ধাপ ৩:** **Run workflow** button → **Run workflow** ক্লিক করুন (অথবা Lovable-এ যেকোনো change করলেই auto-চালু হবে)।
-
-**ধাপ ৪:** ৫-৮ মিনিট wait করুন। workflow সবুজ ✅ হলে:
-
-#### APK download করার দুটি উপায়:
-
-**উপায় A — Releases page থেকে (সহজ):**
-- Repo-র ডানদিকে **Releases** ক্লিক করুন
-- সর্বশেষ release-এ `AdroitVocab-debug.apk` দেখবেন → download করুন
-
-**উপায় B — Actions artifact থেকে:**
-- **Actions** tab → সর্বশেষ run ক্লিক → নিচে **Artifacts** section → **AdroitVocab-APKs** download
 
 ### Phone-এ install করুন:
 
