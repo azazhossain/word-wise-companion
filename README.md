@@ -41,7 +41,6 @@ App খুলে Home screen-এ উপরের 🔔 icon-এ tap → permissio
 | File | কী জন্য |
 |------|---------|
 | `AdroitVocab-debug.apk` | নিজে use করার জন্য — সরাসরি install হয় |
-| `AdroitVocab-release-unsigned.apk` | Play Store-এ publish করতে চাইলে (signing দরকার) |
 
 ---
 
